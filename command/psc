@@ -1,0 +1,119 @@
+#!/bin/sh
+proto="void $1()"
+if [ $# -lt 1 ] || [ $# -gt 3 ];then
+echo "psc: usage: psc <directory> [-p protoype]" && exit 1
+fi
+
+[ -d "$1" ] && echo "psc: '$1' already exists" && exit 1
+[ "$2" == "-p" ] && proto=$3
+
+mkdir "$1"
+cd "$1"
+
+mkdir "tests"
+cd tests
+
+tee test.c > /dev/null << EOF
+#include <criterion/criterion.h>
+#include "../${1}.h"
+
+Test(Basics,test1)
+{
+
+}
+EOF
+cd ..
+touch "$1".c
+# FILE C
+tee "$1".c > /dev/null << EOF
+#include "$1.h"
+$proto
+{
+    return;
+}
+EOF
+# MAIN.C
+tee main.c > /dev/null << EOF
+#include <stdio.h>
+
+#include "$1.h"
+
+int main(void)
+{
+    $proto;
+
+    return 0;
+}
+EOF
+
+#MAKEFILE
+tee Makefile > /dev/null << EOF
+CC = gcc -g
+
+# Pre-processor flags
+DEBUG = -g
+# Main compilation flags
+CFLAGS = -Wall -Wextra  -Werror -Wvla -std=c99 -pedantic
+# Linker flags
+LDFLAGS =
+
+# Libs and Path for linker
+LDLIBS = -lcriterion
+
+SRC_Test = tests/test.c
+OBJ_Test = \${SRC_Test:.c=.o}
+
+SRC = $1.c
+OBJ = \${SRC:.c=.o}
+
+SRC_Main = main.c
+OBJ_Main = \${SRC_Main:.c=.o}
+
+NAME_LIB = $1
+NAME = main.out
+
+library: \${OBJ}
+	ar csr lib\${NAME_LIB}.a \$?
+
+all: \${OBJ_Main} library
+	\$(CC) \${LDLIBS} -o \${NAME} $< -L. -l\${NAME_LIB}
+
+test: LDLIBS+= -lcriterion
+test: CFLAGS += \$(shell pkg-config --cflags criterion)
+test: \${OBJ} \${OBJ_Test}
+	\$(CC) \${DEBUG} \$^ -o \${NAME}  \${LDLIBS}
+
+run: all
+	./\${NAME}
+
+asan: CFLAGS+= -fsanitize=address
+asan: LDLIBS += -fsanitize=address
+asan: clean all
+
+coverage: CFLAGS+= -fPIC -coverage
+coverage: LDLIBS += -lgcov
+coverage: clean run
+	gcovr --html-details output.html
+	firefox output.html
+
+.PHONY:all test clean coverage
+
+clean:
+	\${RM} \${OBJ} \${OBJ_Test} \${OBJ_Main}
+	\${RM} \${DEP} lib\${NAME_LIB:=.a}
+	\${RM} \${NAME}
+	\${RM} *.gcov *.html *.css *.gcda *.gcno tests/*.gcda tests/*.gcno
+EOF
+
+arg=$1
+UP=${arg^^}
+
+tee "$1".h > /dev/null << EOF
+#ifndef ${UP}_H 
+#define ${UP}_H
+
+$proto;
+
+
+#endif /* ! ${UP}_H */
+EOF
