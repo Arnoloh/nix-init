@@ -113,5 +113,7 @@ function test()
     /home/arnaud.corcione/69sh/tests/test.sh "$1"
     cd -
 }
-alias make="make -j50"
+alias make="make -j10"
 alias tc="/home/arnaud.corcione/miau-rawr/src/tc"
+export PGDATA="$HOME/postgres_data"
+export PGHOST="/tmp"

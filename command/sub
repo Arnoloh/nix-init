@@ -5,7 +5,7 @@ tags=""
 files='*'
 [ $# -eq 1 ] && echo "one arg batard" && exit 1
 #find . -regex '.*\.\(h\|c\)' -exec clang-format -style=file -i {} \;
-clang-format-epita
+#clang-format-epita
 rm $(git rev-parse --show-toplevel)/.git/index.lock 2> /dev/null
 until [ $# -eq 0 ]; do 
 

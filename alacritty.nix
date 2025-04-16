@@ -8,8 +8,6 @@
          
         font = {
             size = 12.0;
-            family = "FiraCode";
-            style = "Regular";
         };
 
         shell = {

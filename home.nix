@@ -4,9 +4,10 @@
     home = {
         username = "arnaud.corcione";
         homeDirectory = "/home/arnaud.corcione";
-        packages = with pkgs; [bat lolcat neofetch alacritty rofi zsh neovim tldr i3lock-color 
+        packages = with pkgs; [ bat lolcat neofetch alacritty rofi zsh neovim 
+                                tldr i3lock-color vscode jq
             (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })];
-        stateVersion = "23.11";
+        stateVersion = "24.11";
     };
     programs = {
         home-manager.enable = true;
